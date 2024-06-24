@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Kecocokan Jodoh Berdasarkan Weton</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url(https://static.promediateknologi.id/crop/0x0:0x0/0x0/webp/photo/p2/01/2024/06/21/white-bengal-tiger-nature_23-2151528361-3261950069.jpeg) no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .header {
+            background-color: #00A8E8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            background-color: #00A8E8;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #007B9E;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #007B9E;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #007B9E;
+            animation: spin 1s ease infinite;
+            margin: 0 auto 10px auto;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+        }
+        .result h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .result p span {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+                width: 100%;
+            }
+            .header, .submit-btn {
+                padding: 15px;
+                font-size: 16px;
+            }
+            .form-group input {
+                padding: 10px;
+            }
+            .result, .loading {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            Cek Kecocokan Jodoh Berdasarkan Weton
+        </div>
+        <form id="cekJodohForm">
+            <div class="form-group">
+                <label for="nama1">Nama Kamu:</label>
+                <input type="text" id="nama1" name="nama1" required>
+            </div>
+            <div class="form-group">
+                <label for="tanggalLahir1">Tanggal Lahir Kamu:</label>
+                <input type="date" id="tanggalLahir1" name="tanggalLahir1" required>
+            </div>
+            <div class="form-group">
+                <label for="nama2">Nama Pasangan:</label>
+                <input type="text" id="nama2" name="nama2" required>
+            </div>
+            <div class="form-group">
+                <label for="tanggalLahir2">Tanggal Lahir Pasangan:</label>
+                <input type="date" id="tanggalLahir2" name="tanggalLahir2" required>
+            </div>
+            <button type="submit" class="submit-btn">Cek Kecocokan</button>
+        </form>
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            Memeriksa kecocokan jodoh Kamu...
+        </div>
+        <div id="result" class="result">
+            <h2>Hasil Kecocokan Jodoh:</h2>
+            <p id="jodohResult"></p>
+        </div>
+    </div>
+    <div class="footer">
+        &copy; 2024 Bendi.nr
+    </div>
+    <script>
+        const wetonList = [
+            "Pahing", "Pon", "Wage", "Kliwon", "Legi"
+        ];
+
+        const pasaranValues = {
+            "Pahing": 9,
+            "Pon": 7,
+            "Wage": 4,
+            "Kliwon": 8,
+            "Legi": 5
+        };
+
+        const hariValues = {
+            "Senin": 4,
+            "Selasa": 3,
+            "Rabu": 7,
+            "Kamis": 8,
+            "Jum'at": 6,
+            "Sabtu": 9,
+            "Minggu": 5,
+        };
+
+        const hasilWeton = {
+            1: "PEGAT", 9: "PEGAT", 10: "PEGAT", 18: "PEGAT", 19: "PEGAT", 27: "PEGAT", 28: "PEGAT", 36: "PEGAT",
+            2: "RATU", 11: "RATU", 20: "RATU", 29: "RATU",
+            3: "JODOH", 12: "JODOH", 21: "JODOH", 30: "JODOH",
+            4: "TOPO", 13: "TOPO", 22: "TOPO", 31: "TOPO",
+            5: "TINARI", 14: "TINARI", 23: "TINARI", 32: "TINARI",
+            6: "PADU", 15: "PADU", 24: "PADU", 33: "PADU",
+            7: "SUJANAN", 16: "SUJANAN", 25: "SUJANAN", 34: "SUJANAN",
+            8: "PESTHI", 17: "PESTHI", 26: "PESTHI", 35: "PESTHI"
+        };
+
+        const deskripsiHasil = {
+            "PEGAT": "Menurut Primbon Jawa, jika Kamu mendapatkan Pegat, maka Kamu harus berhati-hati. Hal ini dikarenakan ada masalah di dalam rumah tangga Kamu. Misalnya masalah ekonomi hingga masalah remeh-temeh biasa.",
+            "RATU": "Menurut Primbon Jawa, jika Kamu mendapatkan Ratu, maka Kamu termasuk golongan weton yang beruntung. Hal ini dikarenakan rumah tangga Kamu akan sangat bahagia dan harmonis.",
+            "JODOH": "Menurut Primbon Jawa, jika Kamu mendapatkan Jodoh, maka Kamu dan calon pasangan Kamu adalah pasangan yang berjodoh. Di mana Kamu dan calon bisa menerima kelebihan dan kekurangan masing-masing.",
+            "TOPO": "Menurut Primbon Jawa, jika Kamu mendapatkan Topo, maka Kamu harus sangat waspada. Hal ini dikarenakan pada awal rumah tangga, Kamu dan calon akan mengalami kesulitan. Meski pada akhirnya, Kamu berdua akan bahagia.",
+            "TINARI": "Menurut Primbon Jawa, jika Kamu mendapatkan Tinari, maka Kamu dan calon pasangan Kamu akan bahagia selalu dan beruntung soal rejeki.",
+            "PADU": "Menurut Primbon Jawa, jika Kamu mendapatkan Padu, maka Kamu harus waspada. Hal ini dikarenakan Kamu dan calon pasangan Kamu akan sering alami pertengkaran. Sebab dalam bahasa Jawa, Padu artinya bertengkar.",
+            "SUJANAN": "Menurut Primbon Jawa, jika Kamu mendapatkan Sujanan, Kamu dan pasangan harus waspada. Hal ini dikarenakan Kamu dan calon pasangan Kamu akan diterpa banyak pertengkaran yang diakibatkan oleh perselingkuhan.",
+            "PESTHI": "Menurut Primbon Jawa, jika Kamu mendapatkan Pesthi, maka Kamu dan calon pasangan Kamu akan damai, tentram, dan rukun."
+        };
+
+        function getWeton(tanggalLahir) {
+            const baseDate = new Date('1900-01-01');
+            const targetDate = new Date(tanggalLahir);
+            const diffTime = Math.abs(targetDate - baseDate);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            const dayIndex = diffDays % 7;
+            const pasaranIndex = diffDays % 5;
+
+            const hari = Object.keys(hariValues)[dayIndex];
+            const pasaran = wetonList[pasaranIndex];
+
+            return {
+                hari: hari,
+                pasaran: pasaran
+            };
+        }
+
+        document.getElementById('cekJodohForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            setTimeout(function() {
+                const nama1 = document.getElementById('nama1').value;
+                const tanggalLahir1 = document.getElementById('tanggalLahir1').value;
+                const nama2 = document.getElementById('nama2').value;
+                const tanggalLahir2 = document.getElementById('tanggalLahir2').value;
+
+                const weton1 = getWeton(tanggalLahir1);
+                const weton2 = getWeton(tanggalLahir2);
+
+                const neptu1 = hariValues[weton1.hari] + pasaranValues[weton1.pasaran];
+                const neptu2 = hariValues[weton2.hari] + pasaranValues[weton2.pasaran];
+
+                const totalNeptu = neptu1 + neptu2;
+                const hasil = hasilWeton[totalNeptu];
+                const deskripsi = deskripsiHasil[hasil];
+
+                document.getElementById('jodohResult').innerHTML = `${nama1} (${weton1.hari} ${weton1.pasaran}) dan ${nama2} (${weton2.hari} ${weton2.pasaran}) dengan jumlah neptu ${totalNeptu}: <span>${hasil}</span>.\n\n${deskripsi}`;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+            }, 2000); // Simulate a 2 second loading time
+        });
+    </script>
+</body>
+</html>
